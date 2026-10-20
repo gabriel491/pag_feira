@@ -9,5 +9,6 @@ router.post('/', authMiddleware, feiranteController.criar);
 router.get('/', authMiddleware, feiranteController.listar);
 router.put('/:id', authMiddleware, feiranteController.editar);
 router.delete('/:id', authMiddleware, feiranteController.excluir);
+router.delete('/definitivo/:id', authMiddleware, feiranteController.excluirDefinitivamente);
 
 module.exports = router;

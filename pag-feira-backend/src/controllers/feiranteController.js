@@ -28,34 +28,30 @@ exports.criar = async (req, res) => {
 // 2. Listar todos os Feirantes Ativos (GET)
 exports.listar = async (req, res) => {
   try {
-    // Busca apenas os feirantes onde "ativo" é true
-    // O Mongoose já vai calcular o "valorTotal" automaticamente graças ao Virtual Field que fizemos no model
     const feirantes = await Feirante.find({ ativo: true });
 
     // O Promise.all avisa o Node para esperar todas as buscas no banco terminarem
-    const feirantesComUltimoPag = Promise.all(
+    const feirantesComUltimoPag = await Promise.all(
       feirantes.map(async (feirante) => {
-        // Converte para um objeto normal do JavaScript para podermos adicionar novos campos
-        const feiranteFormatado = feirante.toObject();
+        const feiranteFormatado = feirante.toObject(); 
 
         const historico = await Pagamento.find({ feiranteId: feirante._id })
           .sort({ dataPagamento: -1 })
           .limit(1);
-
+        
         if (historico.length > 0) {
           feiranteFormatado.dataUltimoPagamento = historico[0].dataPagamento;
         } else {
           feiranteFormatado.dataUltimoPagamento = "Nenhum pagamento registrado";
         }
+
         return feiranteFormatado;
-      }),
+      })
     );
 
     res.status(200).json(feirantesComUltimoPag);
   } catch (error) {
-    res
-      .status(500)
-      .json({ mensagem: "Erro ao buscar feirantes.", erro: error.message });
+    res.status(500).json({ mensagem: 'Erro ao buscar feirantes.', erro: error.message });
   }
 };
 
@@ -82,7 +78,7 @@ exports.editar = async (req, res) => {
   }
 };
 
-// 4. Excluir/Desativar um Feirante (DELETE)
+// 4. Desativar um Feirante (SOFT DELETE)
 exports.excluir = async (req, res) => {
   try {
     const idFeirante = req.params.id;
@@ -103,3 +99,19 @@ exports.excluir = async (req, res) => {
       .json({ mensagem: "Erro ao excluir feirante", erro: error.message });
   }
 };
+
+// 5. Deletar um Feirante (DELETE)
+exports.excluirDefinitivamente = async (req, res) => {
+  try {
+    const idFeirante = req.params.id;
+    const feiranteApagado = await Feirante.findByIdAndDelete(idFeirante);
+
+    if (!feiranteApagado) {
+      return res.status(404).json({ mensagem: "Feirante não encontrado." })
+    }
+
+    res.status(200).json({ mensagem: "Feirante apagado DEFINITIVAMENTE do banco de dados!" })
+  } catch (error) {
+    res.status(500).json({ mensagem: "Erro ao apagar feirante", erro: error.message })
+  }
+}

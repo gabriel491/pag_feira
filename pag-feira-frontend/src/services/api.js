@@ -2,7 +2,8 @@ import axios from "axios";
 
 // 1. Instância central com suporte a cookies
 const api = axios.create({
-  baseURL: "http://localhost:5000",
+  // MUDANÇA AQUI: Busca a variável da Vercel ou usa o localhost
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
   withCredentials: true, // Permite o envio/recebimento de cookies HttpOnly
 });
 
@@ -28,11 +29,11 @@ api.interceptors.response.use(
     if (
       error.response?.status === 401 &&
       !originalConfig._retry &&
-      originalConfig.url !== "/api/auth/login" && // NOVO: Não tenta renovar se o erro for senha errada
+      originalConfig.url !== "/api/auth/login" && // Não tenta renovar se o erro for senha errada
       originalConfig.url !== "/api/auth/renovar-token"
     ) {
       
-      // NOVO: A TRAVA! Marca essa requisição como "já tentei renovar" para impedir o loop infinito
+      // A TRAVA! Marca essa requisição como "já tentei renovar" para impedir o loop infinito
       originalConfig._retry = true; 
 
       try {

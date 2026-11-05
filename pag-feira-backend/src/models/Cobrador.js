@@ -21,4 +21,4 @@ const cobradorSchema = new mongoose.Schema({
     
 }, { timestamps: true });
 
-module.exports = mongoose.model('cobrador', cobradorSchema)
+module.exports = mongoose.model('Cobrador', cobradorSchema)

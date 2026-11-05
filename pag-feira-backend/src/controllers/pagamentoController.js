@@ -1,21 +1,49 @@
-// src/controllers/pagamentoController.js
 const Pagamento = require('../models/Pagamento');
 const Feirante = require('../models/Feirante');
+const Cobrador = require('../models/Cobrador');
 
 // 1. Registrar um novo pagamento (A cobrança do domingo)
 exports.registrarPagamento = async (req, res) => {
   try {
-    // Pegamos o ID do feirante e o valor pago que vieram do aplicativo (celular)
     const { feiranteId, valorPago } = req.body;
     
-    // Pegamos o ID do cobrador que está logado (veio do Token JWT através do middleware)
+    // 1. Validação imediata de dados vazios
+    if (!feiranteId || valorPago === undefined) {
+      return res.status(400).json({ mensagem: 'O feirante e o valor pago são obrigatórios.' });
+    }
+
+    // 2. Impede registros de valores negativos ou zerados
+    if (valorPago <= 0) {
+      return res.status(400).json({ mensagem: 'O valor do pagamento deve ser maior que zero.' });
+    }
+
     const cobradorId = req.cobrador.id; 
 
-    // Opcional: Verificar se o feirante realmente existe antes de salvar o pagamento
     const feiranteExiste = await Feirante.findById(feiranteId);
     if (!feiranteExiste) {
       return res.status(404).json({ mensagem: 'Feirante não encontrado.' });
     }
+
+    // ================= NOVA TRAVA DE SEGURANÇA =================
+    // Descobre o início e o fim de hoje
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const fimDoDia = new Date();
+    fimDoDia.setHours(23, 59, 59, 999);
+
+    // Procura no banco se já existe um pagamento desse feirante na data de hoje
+    const pagamentoJaExiste = await Pagamento.findOne({
+      feiranteId: feiranteId,
+      dataPagamento: { $gte: hoje, $lte: fimDoDia }
+    });
+
+    // Se encontrou, barra a operação antes de salvar
+    if (pagamentoJaExiste) {
+      return res.status(400).json({ 
+        mensagem: 'Operação cancelada: Este feirante já realizou um pagamento hoje.' 
+      });
+    }
+    // ==========================================================
 
     // Criamos o registro do pagamento no banco de dados
     const novoPagamento = await Pagamento.create({

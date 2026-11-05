@@ -24,7 +24,6 @@ export const router = createBrowserRouter([
         path: "/home",
         element: <Home />,
       },
-
       {
         path: "/feirante/:id",
         element: <PerfilFeirante />,
@@ -39,14 +38,14 @@ export const router = createBrowserRouter([
       </RotaProtegida>
     ),
   },
-{
-  path: "/relatorio",
-  element: (
-    <RotaProtegida>
-      <RelatorioCaixa />
-    </RotaProtegida>
-  ),
-},
+  {
+    path: "/relatorio",
+    element: (
+      <RotaProtegida>
+        <RelatorioCaixa />
+      </RotaProtegida>
+    ),
+  },
   {
     path: "*",
     element: <PaginaErro />,

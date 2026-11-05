@@ -18,8 +18,12 @@ connectDB();
 app.use(express.json())
 app.use(
   cors({
-    origin: "http://localhost:5173", // Endereço exato da aplicação React
-    credentials: true,               // Permite o envio e recebimento de cookies
+    // Permite conexões tanto do seu PC (desenvolvimento) quanto da Vercel (produção)
+    origin: [
+      "https://pag-feira-frontend.vercel.app",
+      "http://localhost:5173"
+    ], 
+    credentials: true,
   })
 );
 
@@ -29,13 +33,13 @@ app.use('/api/auth', authRoutes)
 app.use('/api/feirantes', feiranteRoutes)
 app.use('/api/pagamentos', pagamentoRoutes)
 
-// Rota de Teste
+// Rota de Teste (Corrigida para retornar um objeto JSON válido)
 app.get('/', (req, res) => {
-    res.json("mensagem: 'API do PagFeira rodando com sucesso!")
+    res.json({ mensagem: "API do PagFeira rodando com sucesso!" })
 })
 
 // Inicialização
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-    console.log(`Porta rodando na porta: ${PORT}`);  
+    console.log(`Servidor rodando na porta: ${PORT}`);  
 })
